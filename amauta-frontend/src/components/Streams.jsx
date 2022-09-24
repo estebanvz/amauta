@@ -3,9 +3,10 @@ import React from "react";
 import Web3 from 'web3'
 import { newKitFromWeb3 } from '@celo/contractkit'
 import BigNumber from "bignumber.js"
-import marketplaceAbi from '../contract/marketplace.abi.json'
+// import marketplaceAbi from '../contract/marketplace.abi.json'
 const ERC20_DECIMALS = 18
 const MPContractAddress = "0x178134c92EC973F34dD0dd762284b852B211CFC8"
+const MPContract="0x6A3823C91521aDd2EFB09eEf0d8aC3AA973d58f8"
 export default function Streams() {
   const products = [
     {
