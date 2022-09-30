@@ -18,6 +18,7 @@
 
   <h3 align="center"> Crypto Market Place on Celo Blockchain
 </h3>
+    <a href="https://estebanvz.github.io/amauta/">---> WEB PAGE <---</a>
 
   <p align="center">
     This is a crypto market of streams. Where you can buy private sessions with your favorite Streamers. You only need to select the Streams you want to buy, make the payment in cUSD and you will have access to the private link.
