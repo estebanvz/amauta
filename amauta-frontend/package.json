@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://estebanvz.github.io/amauta",
+  "homepage": "https://estebanvz.github.io/amauta/",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
