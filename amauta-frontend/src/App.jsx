@@ -15,11 +15,14 @@ function App() {
       }}
     >
       <ContextProvider>
-        <Navbar></Navbar> 
-        <div className="grid grid-cols-2 grid-flow-col gap-1 px-10">
-          <div><Streams>  </Streams></div>
-          <div>
+        <Navbar></Navbar>
+        <div className="grid  grid-cols-6  gap-1 px-5">
+
+          <div className="col-span-6 lg:col-span-2 shadow-2xl">
             <CreateStream></CreateStream>
+          </div>
+          <div className="col-span-6 lg:col-span-4">
+            <Streams> </Streams>
           </div>
         </div>
       </ContextProvider>

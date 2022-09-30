@@ -8,14 +8,11 @@ import { Context } from "../config/context";
 
 const ERC20_DECIMALS = 18;
 
-// const address = true;
 const celoWallet =
   "https://chrome.google.com/webstore/detail/celoextensionwallet/kkilomkmpmkbdnfelcpgckmpcaemjcdh";
-const MPContract = "0x6A3823C91521aDd2EFB09eEf0d8aC3AA973d58f8";
-const abiMP = ABI.output.abi;
 
 export default function Navbar() {
-  const { kit, web3, walletState, setWalletState, connectWallet } =
+  const { kit, web3, walletState, update, setUpdate ,setWalletState, connectWallet } =
     React.useContext(Context);
   const [address, setAddress] = React.useState(null);
   const [balance, setBalance] = React.useState(null);
@@ -26,10 +23,13 @@ export default function Navbar() {
       const cUSDBalance = totalBalance.cUSD
         .shiftedBy(-ERC20_DECIMALS)
         .toFixed(2);
+      const tmp  = kit.defaultAccount;
+      setAddress(tmp.substring(0,6)+"..."+tmp.substring(tmp.length-4,tmp.length))
       setBalance(cUSDBalance);
     };
     if (kit) connection();
-  }, [kit]);
+  }, [kit, update]);
+
   return (
     <div>
       <header>
@@ -76,9 +76,9 @@ export default function Navbar() {
                       </button>
                     ) : (
                       <>
-                        <p className="text-left ...">{balance}</p>
-                        <p className="text-left ...">cUSD</p>
-                        <p className="text-left ...">{address}</p>
+                        <p className="text-left text-gray-600">{balance}</p>
+                        <p className="text-left ">cUSD</p>
+                        <p className="text-left text-gray-600">{address}</p>
                         <div>
                           {kit &&
                             <Blockies seed={kit.defaultAccount}></Blockies>

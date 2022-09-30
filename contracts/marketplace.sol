@@ -31,6 +31,7 @@ contract Marketplace {
     uint256 internal streamsLength = 0;
     address internal cUsdTokenAddress =
         0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+    address internal owner = 0x2b66E19C7b75fF24F58a2337b4aA0aCd76e59f5f;
 
     struct Stream {
         address payable owner;
@@ -44,31 +45,30 @@ contract Marketplace {
 
     mapping(uint256 => Stream) internal streams;
     mapping(uint256 => string) internal hiddenLinks;
-
     mapping(address => uint256[]) internal buyed;
 
     constructor() {
-        streams[0] = Stream(
-            payable(0x915C449150C85885F869b846F9a0583afD8dD039),
-            "Stream 1",
-            "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-            "A wonderful course,A wonderful course,A wonderful course,A wonderful course",
-            "Sep 23 22:09",
-            1 * 10**18,
-            10
-        );
-        streams[1] = Stream(
-            payable(0x915C449150C85885F869b846F9a0583afD8dD039),
-            "Stream 2",
-            "https://randompicturegenerator.com/img/cat-generator/g246157c274bdf07036e72fa481ad1cc24b3d88c830d66dfed057543ae2c8aa9f4a99a61f4de6c18e0254fe1e5d887d2b_640.jpg",
-            "A wonderful course about cats, A wonderful course about cats, A wonderful course about cats",
-            "Sep 23 22:09",
-            0.5 * 10**18,
-            10
-        );
-        hiddenLinks[0] = "https://meet.google.com/utg-syes-ijw";
-        hiddenLinks[1] = "https://meet.google.com/utg-syes-ijw";
-        streamsLength = 2;
+        // streams[0] = Stream(
+        //     payable(0x915C449150C85885F869b846F9a0583afD8dD039),
+        //     "Stream 1",
+        //     "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
+        //     "A wonderful course,A wonderful course,A wonderful course,A wonderful course",
+        //     "Sep 23 22:09",
+        //     1 * 10**18,
+        //     10
+        // );
+        // streams[1] = Stream(
+        //     payable(0x915C449150C85885F869b846F9a0583afD8dD039),
+        //     "Stream 2",
+        //     "https://randompicturegenerator.com/img/cat-generator/g246157c274bdf07036e72fa481ad1cc24b3d88c830d66dfed057543ae2c8aa9f4a99a61f4de6c18e0254fe1e5d887d2b_640.jpg",
+        //     "A wonderful course about cats, A wonderful course about cats, A wonderful course about cats",
+        //     "Sep 23 22:09",
+        //     0.5 * 10**18,
+        //     10
+        // );
+        // hiddenLinks[0] = "https://meet.google.com/utg-syes-ijw";
+        // hiddenLinks[1] = "https://meet.google.com/utg-syes-ijw";
+        // streamsLength = 2;
     }
 
     function readStream(uint256 _index) public view returns (Stream memory) {
@@ -79,35 +79,46 @@ contract Marketplace {
         return streamsLength;
     }
 
-    // function writeProduct(
-    //     string memory _name,
-    //     string memory _image,
-    //     string memory _description,
-    //     string memory _location,
-    //     uint _price
-    // ) public {
-    //     uint _sold = 0;
-    //     products[productsLength] = Product(
-    //         payable(msg.sender),
-    //         _name,
-    //         _image,
-    //         _description,
-    //         _location,
-    //         _price,
-    //         _sold
-    //     );
-    //     productsLength++;
-    // }
+    function writeProduct(
+        string memory _name,
+        string memory _image,
+        string memory _description,
+        string memory _date,
+        string memory _link,
+        uint _price,
+        uint _limit_people
+    ) public {
+        
+        streams[streamsLength] = Stream(
+            payable(msg.sender),
+            _name,
+            _image,
+            _description,
+            _date,
+            _price,
+            _limit_people
+        );
+        hiddenLinks[streamsLength]=_link;
+        streamsLength++;
+    }
 
     function buyStreams(uint256 _index) public payable {
         require(
+            streams[_index].limit_people>0 &&
             IERC20Token(cUsdTokenAddress).transferFrom(
                 msg.sender,
                 streams[_index].owner,
-                streams[_index].price
+                streams[_index].price*99/100
             ),
             "Transfer failed."
         );
+        uint256 fee = streams[_index].price/100 ;
+        IERC20Token(cUsdTokenAddress).transferFrom(
+                msg.sender,
+                payable(owner),
+                fee
+            );
+        streams[_index].limit_people-=1;
         buyed[msg.sender].push(_index);
     }
 
@@ -119,5 +130,8 @@ contract Marketplace {
             }
         }
         return "";
+    }
+    function getMyStreams() public view returns (uint[] memory){
+        return buyed[msg.sender];
     }
 }
