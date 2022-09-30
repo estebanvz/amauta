@@ -43,33 +43,10 @@ contract Marketplace {
         uint256 limit_people;
     }
 
-    mapping(uint256 => Stream) internal streams;
-    mapping(uint256 => string) internal hiddenLinks;
-    mapping(address => uint256[]) internal buyed;
+    mapping(uint256 => Stream) private streams;
+    mapping(uint256 => string) private hiddenLinks;
+    mapping(address => mapping(uint256 => bool)) private buyed;
 
-    constructor() {
-        // streams[0] = Stream(
-        //     payable(0x915C449150C85885F869b846F9a0583afD8dD039),
-        //     "Stream 1",
-        //     "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-        //     "A wonderful course,A wonderful course,A wonderful course,A wonderful course",
-        //     "Sep 23 22:09",
-        //     1 * 10**18,
-        //     10
-        // );
-        // streams[1] = Stream(
-        //     payable(0x915C449150C85885F869b846F9a0583afD8dD039),
-        //     "Stream 2",
-        //     "https://randompicturegenerator.com/img/cat-generator/g246157c274bdf07036e72fa481ad1cc24b3d88c830d66dfed057543ae2c8aa9f4a99a61f4de6c18e0254fe1e5d887d2b_640.jpg",
-        //     "A wonderful course about cats, A wonderful course about cats, A wonderful course about cats",
-        //     "Sep 23 22:09",
-        //     0.5 * 10**18,
-        //     10
-        // );
-        // hiddenLinks[0] = "https://meet.google.com/utg-syes-ijw";
-        // hiddenLinks[1] = "https://meet.google.com/utg-syes-ijw";
-        // streamsLength = 2;
-    }
 
     function readStream(uint256 _index) public view returns (Stream memory) {
         return streams[_index];
@@ -79,16 +56,26 @@ contract Marketplace {
         return streamsLength;
     }
 
-    function writeProduct(
-        string memory _name,
-        string memory _image,
-        string memory _description,
-        string memory _date,
+    /**
+        * @dev allow users to upload a Stream to the platform
+        * @notice input data needs to only contain valid values
+     */
+    function writeStream(
+        string calldata _name,
+        string calldata _image,
+        string calldata _description,
+        string calldata _date,
         string memory _link,
         uint _price,
         uint _limit_people
     ) public {
-        
+        require(bytes(_name).length > 0,"Empty name");
+        require(bytes(_image).length > 0,"Empty image");
+        require(bytes(_description).length > 0,"Empty description");
+        require(bytes(_date).length > 0,"Empty date");
+        require(bytes(_link).length > 0,"Empty link");
+        require(_limit_people > 0, "Limit for people must at least be one");
+        require(_price >= 1 ether,"Price needs to start at least from one CUSD");
         streams[streamsLength] = Stream(
             payable(msg.sender),
             _name,
@@ -102,36 +89,43 @@ contract Marketplace {
         streamsLength++;
     }
 
+    /**
+        * @dev allow users to buy a Stream to get access to the hidden links
+        * @notice Streams' owners can't buy their own streams
+     */
     function buyStreams(uint256 _index) public payable {
+        Stream storage currentStreams = streams[_index]; 
+        require(currentStreams.owner != msg.sender, "You can't buy your streams");
+        require(!buyed[msg.sender][_index],"Already bought stream");
         require(
-            streams[_index].limit_people>0 &&
+            currentStreams.limit_people > 0 &&
             IERC20Token(cUsdTokenAddress).transferFrom(
                 msg.sender,
-                streams[_index].owner,
-                streams[_index].price*99/100
+                currentStreams.owner,
+                currentStreams.price * 99 / 100
             ),
             "Transfer failed."
         );
-        uint256 fee = streams[_index].price/100 ;
+        uint256 fee = currentStreams.price / 100 ;
         IERC20Token(cUsdTokenAddress).transferFrom(
                 msg.sender,
                 payable(owner),
                 fee
             );
-        streams[_index].limit_people-=1;
-        buyed[msg.sender].push(_index);
+        currentStreams.limit_people -= 1;
+        buyed[msg.sender][_index] = true;
     }
 
+    /**
+        * @dev allow users to query the hidden link of bought streams
+        * @notice if you did not buy this stream yet, an empty string will be returned
+     */
     function getHiddenLink(uint256 _index) public view returns (string memory) {
         
-        for (uint256 i = 0; i < buyed[msg.sender].length; i++) {
-            if (buyed[msg.sender][i] == _index) {
-                return hiddenLinks[_index];
-            }
+        if(buyed[msg.sender][_index]){
+            return hiddenLinks[_index];
         }
         return "";
     }
-    function getMyStreams() public view returns (uint[] memory){
-        return buyed[msg.sender];
-    }
+
 }
