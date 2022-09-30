@@ -31,7 +31,7 @@ contract Marketplace {
     uint256 internal streamsLength = 0;
     address internal cUsdTokenAddress =
         0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
-    address internal owner = 0x2b66E19C7b75fF24F58a2337b4aA0aCd76e59f5f;
+    address internal  owner = 0x2b66E19C7b75fF24F58a2337b4aA0aCd76e59f5f;
 
     struct Stream {
         address payable owner;
@@ -40,44 +40,13 @@ contract Marketplace {
         string description;
         string date;
         uint256 price;
-        uint256 limit_people;
+        uint256 tickets;
     }
 
     mapping(uint256 => Stream) internal streams;
     mapping(uint256 => string) internal hiddenLinks;
     mapping(address => uint256[]) internal buyed;
-
-    constructor() {
-        // streams[0] = Stream(
-        //     payable(0x915C449150C85885F869b846F9a0583afD8dD039),
-        //     "Stream 1",
-        //     "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg",
-        //     "A wonderful course,A wonderful course,A wonderful course,A wonderful course",
-        //     "Sep 23 22:09",
-        //     1 * 10**18,
-        //     10
-        // );
-        // streams[1] = Stream(
-        //     payable(0x915C449150C85885F869b846F9a0583afD8dD039),
-        //     "Stream 2",
-        //     "https://randompicturegenerator.com/img/cat-generator/g246157c274bdf07036e72fa481ad1cc24b3d88c830d66dfed057543ae2c8aa9f4a99a61f4de6c18e0254fe1e5d887d2b_640.jpg",
-        //     "A wonderful course about cats, A wonderful course about cats, A wonderful course about cats",
-        //     "Sep 23 22:09",
-        //     0.5 * 10**18,
-        //     10
-        // );
-        // hiddenLinks[0] = "https://meet.google.com/utg-syes-ijw";
-        // hiddenLinks[1] = "https://meet.google.com/utg-syes-ijw";
-        // streamsLength = 2;
-    }
-
-    function readStream(uint256 _index) public view returns (Stream memory) {
-        return streams[_index];
-    }
-
-    function readLength() public view returns (uint256) {
-        return streamsLength;
-    }
+    mapping(address => mapping(uint => bool)) hasbought;
 
     function writeProduct(
         string memory _name,
@@ -86,7 +55,7 @@ contract Marketplace {
         string memory _date,
         string memory _link,
         uint _price,
-        uint _limit_people
+        uint _tickets
     ) public {
         
         streams[streamsLength] = Stream(
@@ -96,15 +65,17 @@ contract Marketplace {
             _description,
             _date,
             _price,
-            _limit_people
+            _tickets
         );
         hiddenLinks[streamsLength]=_link;
         streamsLength++;
     }
 
     function buyStreams(uint256 _index) public payable {
+        require(!hasbought[msg.sender][_index], "user has already bought");
+        require(msg.sender != streams[_index].owner);
         require(
-            streams[_index].limit_people>0 &&
+            streams[_index].tickets>0 &&
             IERC20Token(cUsdTokenAddress).transferFrom(
                 msg.sender,
                 streams[_index].owner,
@@ -118,20 +89,26 @@ contract Marketplace {
                 payable(owner),
                 fee
             );
-        streams[_index].limit_people-=1;
+        streams[_index].tickets-= 1;
         buyed[msg.sender].push(_index);
     }
 
     function getHiddenLink(uint256 _index) public view returns (string memory) {
-        
-        for (uint256 i = 0; i < buyed[msg.sender].length; i++) {
-            if (buyed[msg.sender][i] == _index) {
-                return hiddenLinks[_index];
-            }
+        if (hasbought[msg.sender][_index]){
+            return hiddenLinks[_index];
         }
         return "";
     }
+    
     function getMyStreams() public view returns (uint[] memory){
         return buyed[msg.sender];
+    }
+
+    function readStream(uint256 _index) public view returns (Stream memory) {
+        return streams[_index];
+    }
+
+    function readLength() public view returns (uint256) {
+        return streamsLength;
     }
 }
