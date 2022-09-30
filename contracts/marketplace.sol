@@ -96,6 +96,7 @@ contract Marketplace {
     function buyStreams(uint256 _index) public payable {
         Stream storage currentStreams = streams[_index]; 
         require(currentStreams.owner != msg.sender, "You can't buy your streams");
+        require(!buyed[msg.sender][_index],"Already bought stream");
         require(
             currentStreams.limit_people > 0 &&
             IERC20Token(cUsdTokenAddress).transferFrom(
